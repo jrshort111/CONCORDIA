@@ -13,39 +13,48 @@ static uint32_t vga_row = 0;
 static uint32_t vga_col = 0;
 
 static inline void serial_out(uint16_t port, uint8_t val) {
-    asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
+    asm volatile("out %0, %1" : : "a"(val), "Nd"(port));
 }
 
 static inline uint8_t serial_in(uint16_t port) {
     uint8_t ret;
-    asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+    asm volatile("in %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
 
 void serial_init(void) {
-    serial_out(SERIAL_PORT + 1, 0x00);  // Disable all interrupts
-    serial_out(SERIAL_PORT + 3, 0x80);  // Enable DLAB (set baud rate divisor)
-    serial_out(SERIAL_PORT + 0, 0x03);  // Set divisor to 3 (lo byte)
-    serial_out(SERIAL_PORT + 1, 0x00);  // Set divisor to 3 (hi byte)
-    serial_out(SERIAL_PORT + 3, 0x03);  // 8 bits, no parity, one stop bit
-    serial_out(SERIAL_PORT + 2, 0xC7);  // Enable FIFO
-    serial_out(SERIAL_PORT + 4, 0x0B);  // IRQs enabled, RTS/DSR set
+    // Initialize UART at 0x3F8 for QEMU
+    // Basic initialization: set divisor, line control
+    serial_out(SERIAL_PORT + 1, 0x00);  // Disable interrupts
+    serial_out(SERIAL_PORT + 3, 0x80);  // Enable DLAB
+    serial_out(SERIAL_PORT + 0, 1);     // Divisor low
+    serial_out(SERIAL_PORT + 1, 0);     // Divisor high
+    serial_out(SERIAL_PORT + 3, 0x03);  // 8N1
+    serial_out(SERIAL_PORT + 2, 0xC7);  // FIFO
+    serial_out(SERIAL_PORT + 4, 0x0B);  // RTS/DTR
+    
+    // Send initial marker
+    serial_write_string("CONCORDIA START\n");
 }
 
 void serial_write_string(const char *str) {
     while (*str) {
-        while ((serial_in(SERIAL_PORT + 5) & 0x20) == 0);  // Wait for transmit buffer
-        serial_out(SERIAL_PORT, *str++);
+        // Wait for transmit buffer
+        int timeout = 10000;
+        while (timeout-- && ((serial_in(SERIAL_PORT + 5) & 0x20) == 0));
+        
+        serial_out(SERIAL_PORT, *str);
+        str++;
     }
 }
 
 void console_init(void) {
-    serial_init();
-    vga_row = 0;
-    vga_col = 0;
-    
-    for (int i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
-        vga_buffer[i] = (VGA_COLOR << 8) | ' ';
+    // Minimal initialization - just send marker
+    // Skip serial_init and VGA setup to isolate the problem
+    const char *boot_msg = "CONCORDIA_BOOT_START\n";
+    const char *p = boot_msg;
+    while (*p) {
+        serial_out(SERIAL_PORT, *p++);
     }
 }
 
@@ -73,7 +82,7 @@ void console_write_char(char c) {
 
 void console_write_string(const char *str) {
     while (*str) {
-        console_write_char(*str++);
+        serial_out(SERIAL_PORT, *str++);
     }
 }
 
@@ -116,7 +125,7 @@ void console_write_hex(uint64_t value) {
     buf[16] = '\0';
     
     if (value == 0) {
-        console_write_char('0');
+        serial_out(SERIAL_PORT, '0');
         return;
     }
     

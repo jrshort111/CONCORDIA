@@ -17,8 +17,8 @@ typedef struct {
 } kernel_info_t;
 
 typedef struct {
-    kernel_info_t linux;
-    kernel_info_t windows;
+    kernel_info_t linux_kernel;
+    kernel_info_t windows_kernel;
 } kernel_state_t;
 
 void kernel_loader_init(void);

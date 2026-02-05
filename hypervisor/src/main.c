@@ -9,7 +9,7 @@
 #include "dashboard.h"
 #include "kernel_loader.h"
 
-void main(uint32_t magic, uint32_t addr) {
+void cmain(uint32_t magic, uint32_t addr) {
     console_init();
     console_write_string("=== CONCORDIA Hypervisor ===\n\n");
     
