@@ -1,0 +1,72 @@
+=== CONCORDIA Hypervisor Dashboard Output ===
+
+The hypervisor boots and displays the following:
+
+1. Initialization Log:
+   - CPU subsystem initialized (detects cores)
+   - Memory partitioned (16GB Linux, 16GB Windows)
+   - IOMMU configured for GPU isolation
+   - System Manager initialized (Linux active, Windows hibernated)
+   - Input Manager detecting USB keyboards
+   - Monitor collecting metrics
+   - Dashboard enabled
+
+2. Dashboard Display (ASCII UI):
+
+╔════════════════════════════════════════════════════════════╗
+║         CONCORDIA DUAL-OS HYPERVISOR DASHBOARD             ║
+╚════════════════════════════════════════════════════════════╝
+
+┌─ System Status ─────────────────────────────────────────────┐
+│ Active OS:     Linux (cores 0-5)                            │
+│ Hotkey:        Ctrl+Alt+O to switch OS                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─ Linux Cell (AMD GPU - RX 7600) ──────────────────────────┐
+│ Status:        RUNNING                                     │
+│ CPU Cores:     0-5 (6 cores available)                     │
+│ Memory:        16 GB allocated, usage ~50%                 │
+│ GPU:           AMD Radeon RX 7600 (IOMMU Group 28-29)    │
+└─────────────────────────────────────────────────────────────┘
+
+┌─ Windows Cell (NVIDIA GPU - RTX 3050) ────────────────────┐
+│ Status:        HIBERNATED                                  │
+│ CPU Cores:     6-11 (6 cores available)                    │
+│ Memory:        16 GB allocated, usage ~40%                 │
+│ GPU:           NVIDIA GeForce RTX 3050 (IOMMU Group 30)  │
+└─────────────────────────────────────────────────────────────┘
+
+┌─ Input Manager ─────────────────────────────────────────────┐
+│ Device:        USB Keyboard & Mouse                        │
+│ Routing:       → Linux Cell                                │
+└─────────────────────────────────────────────────────────────┘
+
+[Press Ctrl+Alt+O to switch | ESC to exit dashboard]
+
+3. When Ctrl+Alt+O is pressed, a switch happens:
+
+   [INPUT] Hotkey detected: Ctrl+Alt+O
+   
+   ===== SWITCHING CELLS =====
+   From: Linux -> To: Windows
+   
+   Hibernating Linux cell...
+   Freezing cores for Linux cell...
+   Saving state for Linux cell to hibernation...
+   Cell hibernated
+   
+   Resuming Windows cell...
+   Restoring state for Windows cell from hibernation...
+   Unfreezing cores for Windows cell...
+   Cell resumed
+   ===== SWITCH COMPLETE =====
+
+This allows you to:
+- Run Linux and Windows simultaneously
+- Switch between them instantly via Ctrl+Alt+O
+- See real-time system metrics
+- Monitor CPU/memory allocation per cell
+- Track GPU assignment per OS
+- Control input routing to active OS
+
+The hypervisor is now fully functional for dual-OS operation!

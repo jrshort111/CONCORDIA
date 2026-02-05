@@ -7,6 +7,12 @@ KERNEL_SRC := src/main.c
 CONSOLE_SRC := src/console.c
 CPU_SRC := src/cpu.c
 MEMORY_SRC := src/memory.c
+IOMMU_SRC := src/iommu.c
+SYSTEM_MANAGER_SRC := src/system_manager.c
+INPUT_MANAGER_SRC := src/input_manager.c
+MONITOR_SRC := src/monitor.c
+DASHBOARD_SRC := src/dashboard.c
+KERNEL_LOADER_SRC := src/kernel_loader.c
 BUILD_DIR := build
 ISO_DIR := $(BUILD_DIR)/iso
 KERNEL_BIN := $(BUILD_DIR)/kernel.bin
@@ -14,14 +20,20 @@ ISO_IMAGE := $(BUILD_DIR)/concordia.iso
 
 build: $(ISO_IMAGE)
 
-$(KERNEL_BIN): $(BOOT_ASM) $(KERNEL_SRC) $(CONSOLE_SRC) $(CPU_SRC) $(MEMORY_SRC)
+$(KERNEL_BIN): $(BOOT_ASM) $(KERNEL_SRC) $(CONSOLE_SRC) $(CPU_SRC) $(MEMORY_SRC) $(IOMMU_SRC) $(SYSTEM_MANAGER_SRC) $(INPUT_MANAGER_SRC) $(MONITOR_SRC) $(DASHBOARD_SRC) $(KERNEL_LOADER_SRC)
 	mkdir -p $(BUILD_DIR)
 	nasm -f elf64 $(BOOT_ASM) -o $(BUILD_DIR)/boot.o
 	gcc -c $(KERNEL_SRC) -o $(BUILD_DIR)/kernel.o -nostdlib -fno-builtin -I src
 	gcc -c $(CONSOLE_SRC) -o $(BUILD_DIR)/console.o -nostdlib -fno-builtin -I src
 	gcc -c $(CPU_SRC) -o $(BUILD_DIR)/cpu.o -nostdlib -fno-builtin -I src
 	gcc -c $(MEMORY_SRC) -o $(BUILD_DIR)/memory.o -nostdlib -fno-builtin -I src
-	ld -T linker.ld $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/memory.o -o $(KERNEL_BIN)
+	gcc -c $(IOMMU_SRC) -o $(BUILD_DIR)/iommu.o -nostdlib -fno-builtin -I src
+	gcc -c $(SYSTEM_MANAGER_SRC) -o $(BUILD_DIR)/system_manager.o -nostdlib -fno-builtin -I src
+	gcc -c $(INPUT_MANAGER_SRC) -o $(BUILD_DIR)/input_manager.o -nostdlib -fno-builtin -I src
+	gcc -c $(MONITOR_SRC) -o $(BUILD_DIR)/monitor.o -nostdlib -fno-builtin -I src
+	gcc -c $(DASHBOARD_SRC) -o $(BUILD_DIR)/dashboard.o -nostdlib -fno-builtin -I src
+	gcc -c $(KERNEL_LOADER_SRC) -o $(BUILD_DIR)/kernel_loader.o -nostdlib -fno-builtin -I src
+	ld -T linker.ld $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/console.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/memory.o $(BUILD_DIR)/iommu.o $(BUILD_DIR)/system_manager.o $(BUILD_DIR)/input_manager.o $(BUILD_DIR)/monitor.o $(BUILD_DIR)/dashboard.o $(BUILD_DIR)/kernel_loader.o -o $(KERNEL_BIN)
 
 $(ISO_IMAGE): $(KERNEL_BIN)
 	mkdir -p $(ISO_DIR)/boot/grub
